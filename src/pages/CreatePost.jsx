@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaUpload, FaTrash } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { motion } from "framer-motion";
 
 export default function CreatePost() {
   const [title, setTitle] = useState("");
@@ -11,17 +12,19 @@ export default function CreatePost() {
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const inputRef = useRef(null);
 
-  // Gérer le drop ou sélection de fichier
+  // Handle file selection or drop
   const handleFile = (file) => {
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload an image file.");
+    if (file && !file.type.startsWith("image/")) {
+      setErrors({ ...errors, image: "Please upload an image file (PNG, JPG, GIF)." });
       return;
     }
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    setImagePreview(file ? URL.createObjectURL(file) : null);
+    setErrors({ ...errors, image: "" });
   };
 
   const handleDrop = (e) => {
@@ -48,39 +51,67 @@ export default function CreatePost() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Ici tu peux envoyer imageFile au serveur via FormData par exemple
-    console.log({
-      title,
-      imageFile,
-      description,
-      content,
-    });
-
-    setTitle("");
+  const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    setDescription("");
-    setContent("");
+    setErrors({ ...errors, image: "" });
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!title.trim() || title.length < 5) {
+      newErrors.title = "Title is required and must be at least 5 characters";
+    }
+
+    if (!content.trim() || content.length < 20) {
+      newErrors.content = "Content is required and must be at least 20 characters";
+    }
+
+    if (description.length > 200) {
+      newErrors.description = "Description must be 200 characters or less";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      console.log({ title, imageFile, description, content });
+      setTitle("");
+      setImageFile(null);
+      setImagePreview(null);
+      setDescription("");
+      setContent("");
+      setErrors({});
+    }
   };
 
   return (
-    <>
-      <Header />
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <motion.div
+        className="sticky top-0 z-50 bg-white shadow-lg"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Header />
+      </motion.div>
 
-      <main className="max-w-3xl mx-auto px-6 py-12 bg-white rounded-xl shadow-lg mt-10 mb-20">
+      <main className="flex-grow max-w-5xl mx-auto px-8 sm:px-12 py-12 bg-white rounded-xl shadow-lg mt-10 mb-20 w-full">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-4xl font-extrabold mb-8 text-center text-gray-900"
+          className="text-4xl sm:text-5xl font-extrabold mb-10 text-center text-gray-900"
         >
           Create a New Post
         </motion.h1>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-10">
           {/* Title */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -97,11 +128,31 @@ export default function CreatePost() {
               id="title"
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setErrors({ ...errors, title: "" });
+              }}
               required
               placeholder="Enter post title"
-              className="w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-400 transition"
+              className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition ${
+                errors.title ? "border-red-500" : ""
+              }`}
+              aria-describedby={errors.title ? "title-error" : undefined}
             />
+            <AnimatePresence>
+              {errors.title && (
+                <motion.p
+                  id="title-error"
+                  className="text-red-600 text-sm mt-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {errors.title}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Image Upload with Drag & Drop */}
@@ -110,45 +161,45 @@ export default function CreatePost() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <label className="block mb-3 text-lg font-semibold text-gray-700">
+            <label
+              htmlFor="image"
+              className="block mb-3 text-lg font-semibold text-gray-700"
+            >
               Image Upload
             </label>
-
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onClick={() => inputRef.current.click()}
-              className={`cursor-pointer relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-10
-                ${
-                  dragActive
-                    ? "border-green-500 bg-green-50"
-                    : "border-gray-300 bg-gray-50 hover:border-green-400"
-                }
-              `}
+              className={`cursor-pointer relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 ${
+                dragActive
+                  ? "border-green-600 bg-green-50"
+                  : "border-gray-300 bg-gray-50 hover:border-green-600"
+              }`}
             >
               {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="max-h-48 rounded-md object-contain"
-                />
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="max-h-60 rounded-md object-contain"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage();
+                    }}
+                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                    aria-label="Remove image"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
               ) : (
                 <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 text-green-400 mb-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 16V4m0 0L3 8m4-4l4 4m6 8v4m0 0l-4-4m4 4l4-4"
-                    />
-                  </svg>
+                  <FaUpload className="h-12 w-12 text-green-600 mb-3" />
                   <p className="text-green-600 font-medium">
                     Drag & drop an image or click to select
                   </p>
@@ -157,8 +208,8 @@ export default function CreatePost() {
                   </p>
                 </>
               )}
-
               <input
+                id="image"
                 ref={inputRef}
                 type="file"
                 accept="image/*"
@@ -166,6 +217,19 @@ export default function CreatePost() {
                 className="hidden"
               />
             </div>
+            <AnimatePresence>
+              {errors.image && (
+                <motion.p
+                  className="text-red-600 text-sm mt-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {errors.image}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Description */}
@@ -183,11 +247,31 @@ export default function CreatePost() {
             <textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                setErrors({ ...errors, description: "" });
+              }}
+              rows={4}
               placeholder="Short description"
-              className="w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-400 transition resize-none"
+              className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition resize-none ${
+                errors.description ? "border-red-500" : ""
+              }`}
+              aria-describedby={errors.description ? "description-error" : undefined}
             />
+            <AnimatePresence>
+              {errors.description && (
+                <motion.p
+                  id="description-error"
+                  className="text-red-600 text-sm mt-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {errors.description}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Content */}
@@ -205,12 +289,32 @@ export default function CreatePost() {
             <textarea
               id="content"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={6}
+              onChange={(e) => {
+                setContent(e.target.value);
+                setErrors({ ...errors, content: "" });
+              }}
+              rows={8}
               required
               placeholder="Write your post content here"
-              className="w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-400 transition resize-none"
+              className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition resize-none ${
+                errors.content ? "border-red-500" : ""
+              }`}
+              aria-describedby={errors.content ? "content-error" : undefined}
             />
+            <AnimatePresence>
+              {errors.content && (
+                <motion.p
+                  id="content-error"
+                  className="text-red-600 text-sm mt-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {errors.content}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Submit Button */}
@@ -222,7 +326,7 @@ export default function CreatePost() {
           >
             <button
               type="submit"
-              className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-4 rounded-full shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-400"
+              className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-12 py-4 rounded-lg shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-600"
             >
               Create Post
             </button>
@@ -231,6 +335,6 @@ export default function CreatePost() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

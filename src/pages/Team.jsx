@@ -4,6 +4,7 @@ import { FaUser, FaCode, FaServer, FaUsers } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
+
 const teamMembers = [
   {
     name: "MEFIRE HAMED",
@@ -19,8 +20,8 @@ const teamMembers = [
   },
   {
     name: "JEFF KENFACK ",
-    role: "API Integration, Backend Developer, Microservices Specialist",
-    photo: "https://randomuser.me/api/portraits/men/75.jpg",
+    role: "API Integration, Fullstack Developer, Microservices Specialist",
+    photo: "/images/jeffrey.jpeg",
     icon: <FaCode />,
   },
 ];

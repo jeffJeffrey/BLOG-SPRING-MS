@@ -40,7 +40,7 @@ export default function Profile() {
   return (
     <>
       <Header />
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <section className="max-w-5xl mx-auto px-6 py-10 mt-3">
         <section className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-10 mb-12">
           <img
             src={user.avatar}
@@ -124,7 +124,7 @@ export default function Profile() {
             )}
           </section>
         )}
-      </main>
+      </section>
       <Footer />
     </>
   );

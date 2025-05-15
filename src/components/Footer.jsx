@@ -2,7 +2,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiFacebook, FiTwitter, FiInstagram, FiGithub } from "react-icons/fi";
-import Hero from "./Hero";
 
 export default function Footer() {
   return (
@@ -18,7 +17,7 @@ export default function Footer() {
         <div>
           <h2 className="text-2xl font-bold text-green-600 mb-4">BLOGGING</h2>
           <p className="text-sm">
-            La plateforme parfaite pour partager vos idées, vos passions et vos découvertes.
+            The perfect platform to share your ideas, passions, and discoveries.
           </p>
         </div>
 
@@ -26,17 +25,17 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-semibold mb-4">Navigation</h3>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="hover:text-green-600">Accueil</Link></li>
-            <li><Link to="/about" className="hover:text-green-600">À propos</Link></li>
-            <li><Link to="/create" className="hover:text-green-600">Créer un article</Link></li>
-            <li><Link to="/team" className="hover:text-green-600">Notre équipe</Link></li>
-            <li><Link to="#" className="hover:text-green-600">Boutique</Link></li>
+            <li><Link to="/" className="hover:text-green-600">Home</Link></li>
+            <li><Link to="/about" className="hover:text-green-600">About</Link></li>
+            <li><Link to="/create" className="hover:text-green-600">Create a Post</Link></li>
+            <li><Link to="/team" className="hover:text-green-600">Our Team</Link></li>
+            <li><Link to="#" className="hover:text-green-600">Shop</Link></li>
           </ul>
         </div>
 
-        {/* Réseaux sociaux */}
+        {/* Social Media */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Suivez-nous</h3>
+          <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
           <div className="flex space-x-4 text-xl text-gray-600">
             <a href="#" className="hover:text-green-600" aria-label="Facebook">
               <FiFacebook />
@@ -55,7 +54,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-gray-200 py-4 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} BLOGGING. Tous droits réservés.
+        © {new Date().getFullYear()} BLOGGING. All rights reserved.
       </div>
     </motion.footer>
   );

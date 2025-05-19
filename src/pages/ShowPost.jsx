@@ -81,7 +81,6 @@ export default function ShowPost() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Header />
       </motion.div>
 
       <main className="  max-w-screen-xl mx-auto px-6 sm:px-12 py-16 w-full">
@@ -221,7 +220,6 @@ export default function ShowPost() {
         </motion.form>
       </main>
 
-      <Footer />
     </div>
   );
 }

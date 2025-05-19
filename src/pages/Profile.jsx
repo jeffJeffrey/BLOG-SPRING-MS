@@ -21,14 +21,16 @@ export default function Profile() {
       title: "My first article on sustainable design",
       date: "2024-05-01",
       views: 342,
-      thumbnail: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=400&q=80",
+      thumbnail:
+        "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: 2,
       title: "Urban gardening: tips and tricks",
       date: "2024-04-15",
       views: 198,
-      thumbnail: "https://images.unsplash.com/photo-1466692476868-a545e82e2e69?auto=format&fit=crop&w=400&q=80",
+      thumbnail:
+        "https://images.unsplash.com/photo-1466692476868-a545e82e2e69?auto=format&fit=crop&w=400&q=80",
     },
   ];
 
@@ -37,7 +39,8 @@ export default function Profile() {
       id: 101,
       title: "Draft: ideas for an organic vegetable garden",
       lastEdited: "2024-05-10",
-      thumbnail: "https://images.unsplash.com/photo-1516257984-b91b4a971d65?auto=format&fit=crop&w=400&q=80",
+      thumbnail:
+        "https://images.unsplash.com/photo-1516257984-b91b4a971d65?auto=format&fit=crop&w=400&q=80",
     },
   ];
 
@@ -54,9 +57,7 @@ export default function Profile() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-      >
-        <Header />
-      </motion.div>
+      ></motion.div>
 
       <section className="flex-grow max-w-5xl mx-auto px-6 sm:px-12 py-16 w-full">
         {/* User Info Card */}
@@ -214,7 +215,9 @@ export default function Profile() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <p className="text-gray-600 text-lg mb-4">No published posts yet.</p>
+                <p className="text-gray-600 text-lg mb-4">
+                  No published posts yet.
+                </p>
                 <a
                   href="#write"
                   className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all text-base font-semibold"
@@ -241,9 +244,12 @@ export default function Profile() {
                         className="w-full sm:w-32 h-32 object-cover rounded-md"
                       />
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          {title}
+                        </h3>
                         <p className="text-gray-600 text-sm mt-1">
-                          Published on {new Date(date).toLocaleDateString()} · {views} views
+                          Published on {new Date(date).toLocaleDateString()} ·{" "}
+                          {views} views
                         </p>
                         <div className="mt-3 flex gap-3">
                           <a
@@ -288,7 +294,9 @@ export default function Profile() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <p className="text-gray-600 text-lg mb-4">No drafts at the moment.</p>
+                <p className="text-gray-600 text-lg mb-4">
+                  No drafts at the moment.
+                </p>
                 <a
                   href="#write"
                   className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all text-base font-semibold"
@@ -315,9 +323,12 @@ export default function Profile() {
                         className="w-full sm:w-32 h-32 object-cover rounded-md"
                       />
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          {title}
+                        </h3>
                         <p className="text-gray-600 text-sm mt-1">
-                          Last edited on {new Date(lastEdited).toLocaleDateString()}
+                          Last edited on{" "}
+                          {new Date(lastEdited).toLocaleDateString()}
                         </p>
                         <div className="mt-3">
                           <a
@@ -336,8 +347,6 @@ export default function Profile() {
           </motion.section>
         )}
       </section>
-
-      <Footer />
     </div>
   );
 }

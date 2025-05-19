@@ -88,11 +88,10 @@ export default function Home() {
       setTaglineIndex((prev) => (prev + 1) % taglines.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [taglines.length]);
 
   return (
     <>
-      <Header />
       <div className="bg-gray-50 min-h-screen flex flex-col">
         <motion.div
           className="sticky top-0 z-50 bg-white shadow-lg"
@@ -293,8 +292,6 @@ export default function Home() {
             </motion.button>
           </div>
         </section>
-
-        <Footer />
       </div>
     </>
   );

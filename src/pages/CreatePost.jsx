@@ -19,7 +19,10 @@ export default function CreatePost() {
   // Handle file selection or drop
   const handleFile = (file) => {
     if (file && !file.type.startsWith("image/")) {
-      setErrors({ ...errors, image: "Please upload an image file (PNG, JPG, GIF)." });
+      setErrors({
+        ...errors,
+        image: "Please upload an image file (PNG, JPG, GIF).",
+      });
       return;
     }
     setImageFile(file);
@@ -66,7 +69,8 @@ export default function CreatePost() {
     }
 
     if (!content.trim() || content.length < 20) {
-      newErrors.content = "Content is required and must be at least 20 characters";
+      newErrors.content =
+        "Content is required and must be at least 20 characters";
     }
 
     if (description.length > 200) {
@@ -97,9 +101,7 @@ export default function CreatePost() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-      >
-        <Header />
-      </motion.div>
+      ></motion.div>
 
       <main className="flex-grow max-w-5xl mx-auto px-8 sm:px-12 py-12 bg-white rounded-xl shadow-lg mt-10 mb-20 w-full">
         <motion.h1
@@ -256,7 +258,9 @@ export default function CreatePost() {
               className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition resize-none ${
                 errors.description ? "border-red-500" : ""
               }`}
-              aria-describedby={errors.description ? "description-error" : undefined}
+              aria-describedby={
+                errors.description ? "description-error" : undefined
+              }
             />
             <AnimatePresence>
               {errors.description && (
@@ -333,8 +337,6 @@ export default function CreatePost() {
           </motion.div>
         </form>
       </main>
-
-      <Footer />
     </div>
   );
 }

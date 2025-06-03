@@ -12,6 +12,7 @@ import AboutUs from "./pages/AboutUs";
 import Team from "./pages/Team";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function AppLayout() {
   const location = useLocation();
@@ -23,6 +24,7 @@ function AppLayout() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<SignUp />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/posts/:id" element={<ShowPost />} />
         <Route path="/create" element={<CreatePost />} />

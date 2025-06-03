@@ -1,11 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
-"use client";
 import  { createContext, useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { PUBLIC_GATWAY_URL } from "../api";
-
-const API_URL = PUBLIC_GATWAY_URL;
+import { PUBLIC_GATWAY_URL } from "../api"; 
+const API_URL = PUBLIC_GATWAY_URL ; 
 
 const AuthContext = createContext();
 
@@ -17,9 +15,8 @@ export const AuthProvider = ({ children }) => {
     const token = Cookies.get("token");
     if (token) {
       axios
-        .get("/api/user", {
+        .get("/USER-SERVICE/api/v1/profile", {
           baseURL: API_URL,
-          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -41,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await axios.post(
-      "/api/login",
+      "/USER-SERVICE/login",
       { email, password },
       {
         baseURL: API_URL,
@@ -54,9 +51,8 @@ export const AuthProvider = ({ children }) => {
     const token = res.data.token;
     Cookies.set("token", token);
 
-    const userRes = await axios.get("/api/user", {
+    const userRes = await axios.get("/USER-SERVICE/api/v1/profile", {
       baseURL: API_URL,
-      withCredentials: true,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -65,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (data) => {
-    await axios.post("/api/register", data, {
+    await axios.post("/USER-SERVICE/api/v1/signup", data, {
       baseURL: API_URL,
       headers: {
         "Content-Type": "application/json",

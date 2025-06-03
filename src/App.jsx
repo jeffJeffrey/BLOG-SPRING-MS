@@ -13,6 +13,7 @@ import Team from "./pages/Team";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import VerifyEmail from "./pages/VerifyEmail";
+import VerifyEmailPrompt from "./pages/VerifyEmailPrompt";
 
 function AppLayout() {
   const location = useLocation();
@@ -25,6 +26,7 @@ function AppLayout() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<SignUp />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-email-message" element={<VerifyEmailPrompt/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/posts/:id" element={<ShowPost />} />
         <Route path="/create" element={<CreatePost />} />

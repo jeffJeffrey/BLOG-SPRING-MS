@@ -4,7 +4,6 @@ import { FaUser, FaCode, FaServer, FaUsers } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-
 const teamMembers = [
   {
     name: "MEFIRE HAMED",
@@ -34,9 +33,7 @@ export default function Team() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-      >
-        <Header />
-      </motion.div>
+      ></motion.div>
 
       <main className="max-w-screen-xl mx-auto px-6 sm:px-12 py-16 w-full text-gray-800">
         <motion.h1
@@ -54,9 +51,10 @@ export default function Team() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          We are a group of passionate Master’s students specializing in Artificial Intelligence.
-          Our team has worked collaboratively on this project as part of our Middleware course,
-          aiming to explore microservices architecture in practice.
+          We are a group of passionate Master’s students specializing in
+          Artificial Intelligence. Our team has worked collaboratively on this
+          project as part of our Middleware course, aiming to explore
+          microservices architecture in practice.
         </motion.p>
         <motion.p
           className="text-lg sm:text-xl text-gray-700 leading-relaxed mb-6"
@@ -64,8 +62,9 @@ export default function Team() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          Each member has contributed to different aspects of the project, including frontend development,
-          backend microservices, API design, and integration.
+          Each member has contributed to different aspects of the project,
+          including frontend development, backend microservices, API design, and
+          integration.
         </motion.p>
         <motion.p
           className="text-lg sm:text-xl text-gray-700 leading-relaxed mb-12"
@@ -73,7 +72,8 @@ export default function Team() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          Together, we have built a scalable and modular application to demonstrate the power of modern distributed systems.
+          Together, we have built a scalable and modular application to
+          demonstrate the power of modern distributed systems.
         </motion.p>
 
         <section className="mt-12">
@@ -124,7 +124,9 @@ export default function Team() {
                     </div>
                   </div>
                   <div>
-                    <p className="font-semibold text-lg text-gray-900">{name}</p>
+                    <p className="font-semibold text-lg text-gray-900">
+                      {name}
+                    </p>
                     <p className="text-gray-600 text-sm">{role}</p>
                   </div>
                 </div>
@@ -133,8 +135,6 @@ export default function Team() {
           </motion.ul>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

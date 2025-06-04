@@ -1,22 +1,33 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function SignUp() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    username: "",
+    email: "",
     firstName: "",
     lastName: "",
-    email: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
   const validateForm = () => {
     const newErrors = {};
+
+    // Username
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required";
+    }
 
     // First Name
     if (!formData.firstName.trim()) {
@@ -37,12 +48,8 @@ export default function SignUp() {
     }
 
     // Password
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (!passwordRegex.test(formData.password)) {
-      newErrors.password =
-        "Password must be at least 8 characters, including letters, numbers, and symbols";
     }
 
     // Confirm Password
@@ -56,36 +63,31 @@ export default function SignUp() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const getPasswordStrength = (password) => {
-    if (!password) return { label: "", color: "" };
-    const hasLength = password.length >= 6;
-    const hasLetters = /[A-Za-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSymbols = /[@$!%*?&]/.test(password);
-
-    const strength = [hasLength, hasLetters, hasNumbers, hasSymbols].filter(Boolean).length;
-    if (strength <= 2) return { label: "Weak", color: "text-red-600" };
-    if (strength === 3) return { label: "Medium", color: "text-yellow-600" };
-    return { label: "Strong", color: "text-green-600" };
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError(null);
     if (validateForm()) {
-      console.log("Form Data:", formData);
-      // Simulate API call or redirect
+      try {
+        await register({
+          username: formData.username,
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          password: formData.password,
+        });
+        navigate("/verify-email-message");
+      } catch (error) {
+        setApiError(error.response?.data?.message || "Registration failed. Please try again.");
+      }
     }
   };
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" });
     }
   };
-
-  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-6 py-12">
@@ -105,6 +107,45 @@ export default function SignUp() {
         </motion.h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <label className="block text-sm font-semibold mb-2 text-gray-700">
+              Username
+            </label>
+            <div className="relative">
+              <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-green-600" />
+              <input
+                type="text"
+                placeholder="Your username"
+                className={`w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
+                  errors.username ? "border-red-500" : ""
+                }`}
+                value={formData.username}
+                onChange={(e) => handleChange("username", e.target.value)}
+                required
+                aria-describedby={errors.username ? "username-error" : undefined}
+              />
+            </div>
+            <AnimatePresence>
+              {errors.username && (
+                <motion.p
+                  id="username-error"
+                  className="text-red-600 text-sm mt-1"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {errors.username}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
           {/* First Name */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -161,7 +202,7 @@ export default function SignUp() {
                 className={`w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
                   errors.lastName ? "border-red-500" : ""
                 }`}
-                value={formData.lastName}
+                value={useState.lastName}
                 onChange={(e) => handleChange("lastName", e.target.value)}
                 required
                 aria-describedby={errors.lastName ? "lastName-error" : undefined}
@@ -253,27 +294,20 @@ export default function SignUp() {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
-            <div className="flex justify-between mt-2">
-              <AnimatePresence>
-                {errors.password && (
-                  <motion.p
-                    id="password-error"
-                    className="text-red-600 text-sm"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {errors.password}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-              {formData.password && (
-                <p className={`text-sm ${passwordStrength.color}`}>
-                  Strength: {passwordStrength.label}
-                </p>
+            <AnimatePresence>
+              {errors.password && (
+                <motion.p
+                  id="password-error"
+                  className="text-red-600 text-sm mt-1"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {errors.password}
+                </motion.p>
               )}
-            </div>
+            </AnimatePresence>
           </motion.div>
 
           {/* Confirm Password */}
@@ -322,6 +356,21 @@ export default function SignUp() {
               )}
             </AnimatePresence>
           </motion.div>
+
+          {/* API Error */}
+          <AnimatePresence>
+            {apiError && (
+              <motion.p
+                className="text-red-600 text-sm mt-1 text-center"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {apiError}
+              </motion.p>
+            )}
+          </AnimatePresence>
 
           {/* Submit Button */}
           <motion.button

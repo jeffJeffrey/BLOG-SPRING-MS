@@ -1,340 +1,336 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaUpload, FaTrash } from "react-icons/fa";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { FaSave, FaSpinner } from "react-icons/fa";
+import { useAuth } from "../contexts/AuthContext";
+import api from "../utils/axios";
+import { toast } from "react-toastify";
 
 export default function CreatePost() {
-  const [title, setTitle] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [description, setDescription] = useState("");
-  const [content, setContent] = useState("");
-  const [dragActive, setDragActive] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    title: "",
+    content: "",
+    category_id: "",
+  });
+  const [mediaFile, setMediaFile] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
-  const inputRef = useRef(null);
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get("/POST-SERVICE/api/categories");
+        setCategories(response.data);
+      } catch (error) {
+        toast.error("Failed to load categories.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  // Handle file selection or drop
-  const handleFile = (file) => {
-    if (file && !file.type.startsWith("image/")) {
-      setErrors({ ...errors, image: "Please upload an image file (PNG, JPG, GIF)." });
-      return;
-    }
-    setImageFile(file);
-    setImagePreview(file ? URL.createObjectURL(file) : null);
-    setErrors({ ...errors, image: "" });
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragActive(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setDragActive(false);
-  };
-
-  const handleChangeFile = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setErrors({ ...errors, image: "" });
-  };
-
-  // Validate form
   const validateForm = () => {
     const newErrors = {};
-
-    if (!title.trim() || title.length < 5) {
-      newErrors.title = "Title is required and must be at least 5 characters";
+    if (!formData.title) newErrors.title = "Title is required";
+    if (!formData.content) newErrors.content = "Content is required";
+    if (!formData.category_id) newErrors.category_id = "Please select a category";
+    if (!mediaFile) newErrors.media = "Please upload a media file";
+    else {
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "video/mp4", "video/mov", "video/avi"];
+      if (!allowedTypes.includes(mediaFile.type)) {
+        newErrors.media = "File must be an image (jpg, jpeg, png, gif) or video (mp4, mov, avi)";
+      }
+      if (mediaFile.size > 4 * 1024 * 1024) {
+        newErrors.media = "File size must not exceed 4MB";
+      }
     }
-
-    if (!content.trim() || content.length < 20) {
-      newErrors.content = "Content is required and must be at least 20 characters";
-    }
-
-    if (description.length > 200) {
-      newErrors.description = "Description must be 200 characters or less";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log({ title, imageFile, description, content });
-      setTitle("");
-      setImageFile(null);
-      setImagePreview(null);
-      setDescription("");
-      setContent("");
-      setErrors({});
+    if (!validateForm()) return;
+
+    if (!user) {
+      toast.error("Please log in to create a post.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      navigate("/login");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Create post
+      const postResponse = await api.post("/POST-SERVICE/api/posts", {
+        title: formData.title,
+        content: formData.content,
+        user_id: user.id, // Assuming user.id is available
+        category_id: parseInt(formData.category_id),
+      });
+
+      const postId = postResponse.data.id; // Assuming the response includes the post ID
+
+      // Upload media
+      const mediaFormData = new FormData();
+      mediaFormData.append("url_media", mediaFile);
+      mediaFormData.append("post_id", postId);
+
+      await api.post("/api/media", mediaFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success("Post and media created successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      navigate("/profile");
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to create post or upload media.";
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setErrors({ api: errorMessage });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) setErrors({ ...errors, [name]: "" });
+  };
+
+  const handleFileChange = (e) => {
+    setMediaFile(e.target.files[0]);
+    if (errors.media) setErrors({ ...errors, media: "" });
+  };
+
+  if (authLoading || isLoadingCategories) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-600 text-lg">Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <motion.div
-        className="sticky top-0 z-50 bg-white shadow-lg"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Header />
-      </motion.div>
-
-      <main className="flex-grow max-w-5xl mx-auto px-8 sm:px-12 py-12 bg-white rounded-xl shadow-lg mt-10 mb-20 w-full">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
+    <div className="bg-gray-50 min-h-screen flex flex-col">
+      <main className="flex-grow max-w-3xl mx-auto px-6 sm:px-12 py-16 w-full">
+        <motion.div
+          className="bg-white rounded-2xl shadow-lg p-8"
+          initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-4xl sm:text-5xl font-extrabold mb-10 text-center text-gray-900"
+          transition={{ duration: 0.8 }}
         >
-          Create a New Post
-        </motion.h1>
-
-        <form onSubmit={handleSubmit} className="space-y-10">
-          {/* Title */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+          <motion.h1
+            className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <label
-              htmlFor="title"
-              className="block mb-3 text-lg font-semibold text-gray-700"
+            Create a New Post
+          </motion.h1>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Title */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
-              Title
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                setErrors({ ...errors, title: "" });
-              }}
-              required
-              placeholder="Enter post title"
-              className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition ${
-                errors.title ? "border-red-500" : ""
-              }`}
-              aria-describedby={errors.title ? "title-error" : undefined}
-            />
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
+                Title
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Enter post title"
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
+                  errors.title ? "border-red-500" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              <AnimatePresence>
+                {errors.title && (
+                  <motion.p
+                    className="text-red-600 text-sm mt-1"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {errors.title}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Category */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
+                Category
+              </label>
+              <select
+                name="category_id"
+                value={formData.category_id}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
+                  errors.category_id ? "border-red-500" : ""
+                }`}
+                disabled={isSubmitting}
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <AnimatePresence>
+                {errors.category_id && (
+                  <motion.p
+                    className="text-red-600 text-sm mt-1"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {errors.category_id}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
+                Content
+              </label>
+              <textarea
+                name="content"
+                value={formData.content}
+                onChange={handleChange}
+                placeholder="Write your post content..."
+                rows="8"
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
+                  errors.content ? "border-red-500" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              <AnimatePresence>
+                {errors.content && (
+                  <motion.p
+                    className="text-red-600 text-sm mt-1"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {errors.content}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Media Upload */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+            >
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
+                Upload Media (Image/Video)
+              </label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif,video/mp4,video/mov,video/avi"
+                onChange={handleFileChange}
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
+                  errors.media ? "border-red-500" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              <AnimatePresence>
+                {errors.media && (
+                  <motion.p
+                    className="text-red-600 text-sm mt-1"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {errors.media}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* API Error */}
             <AnimatePresence>
-              {errors.title && (
+              {errors.api && (
                 <motion.p
-                  id="title-error"
-                  className="text-red-600 text-sm mt-2"
+                  className="text-red-600 text-sm text-center"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {errors.title}
+                  {errors.api}
                 </motion.p>
               )}
             </AnimatePresence>
-          </motion.div>
 
-          {/* Image Upload with Drag & Drop */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <label
-              htmlFor="image"
-              className="block mb-3 text-lg font-semibold text-gray-700"
+            {/* Submit Button */}
+            <motion.button
+              type="submit"
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-all shadow-md flex items-center justify-center gap-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={isSubmitting}
             >
-              Image Upload
-            </label>
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => inputRef.current.click()}
-              className={`cursor-pointer relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 ${
-                dragActive
-                  ? "border-green-600 bg-green-50"
-                  : "border-gray-300 bg-gray-50 hover:border-green-600"
-              }`}
-            >
-              {imagePreview ? (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="max-h-60 rounded-md object-contain"
-                  />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveImage();
-                    }}
-                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-                    aria-label="Remove image"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
+              {isSubmitting ? (
+                <>
+                  <FaSpinner className="animate-spin" />
+                  <span>Creating...</span>
+                </>
               ) : (
                 <>
-                  <FaUpload className="h-12 w-12 text-green-600 mb-3" />
-                  <p className="text-green-600 font-medium">
-                    Drag & drop an image or click to select
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    PNG, JPG, GIF up to 5MB
-                  </p>
+                  <FaSave />
+                  <span>Create Post</span>
                 </>
               )}
-              <input
-                id="image"
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleChangeFile}
-                className="hidden"
-              />
-            </div>
-            <AnimatePresence>
-              {errors.image && (
-                <motion.p
-                  className="text-red-600 text-sm mt-2"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {errors.image}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Description */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <label
-              htmlFor="description"
-              className="block mb-3 text-lg font-semibold text-gray-700"
-            >
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                setErrors({ ...errors, description: "" });
-              }}
-              rows={4}
-              placeholder="Short description"
-              className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition resize-none ${
-                errors.description ? "border-red-500" : ""
-              }`}
-              aria-describedby={errors.description ? "description-error" : undefined}
-            />
-            <AnimatePresence>
-              {errors.description && (
-                <motion.p
-                  id="description-error"
-                  className="text-red-600 text-sm mt-2"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {errors.description}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Content */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <label
-              htmlFor="content"
-              className="block mb-3 text-lg font-semibold text-gray-700"
-            >
-              Content
-            </label>
-            <textarea
-              id="content"
-              value={content}
-              onChange={(e) => {
-                setContent(e.target.value);
-                setErrors({ ...errors, content: "" });
-              }}
-              rows={8}
-              required
-              placeholder="Write your post content here"
-              className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition resize-none ${
-                errors.content ? "border-red-500" : ""
-              }`}
-              aria-describedby={errors.content ? "content-error" : undefined}
-            />
-            <AnimatePresence>
-              {errors.content && (
-                <motion.p
-                  id="content-error"
-                  className="text-red-600 text-sm mt-2"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {errors.content}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Submit Button */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-center"
-          >
-            <button
-              type="submit"
-              className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-12 py-4 rounded-lg shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-600"
-            >
-              Create Post
-            </button>
-          </motion.div>
-        </form>
+            </motion.button>
+          </form>
+        </motion.div>
       </main>
-
-      <Footer />
     </div>
   );
 }

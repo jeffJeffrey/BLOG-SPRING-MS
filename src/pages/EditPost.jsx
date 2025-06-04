@@ -11,16 +11,21 @@ const postsData = [
   {
     id: "1",
     title: "The Pursuit of Beauty & Aesthetics and Its Impact on Our Work",
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
     description: "The pursuit of beauty has been an integral aspect...",
-    content: "Here's the detailed content for post 1... you can add anything you want.",
+    content:
+      "Here's the detailed content for post 1... you can add anything you want.",
   },
   {
     id: "2",
-    title: "Herbariums: TerraLiving's Modern Take on Botanical Treasure & Legacy With Stylish Terrariums",
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80",
+    title:
+      "Herbariums: TerraLiving's Modern Take on Botanical Treasure & Legacy With Stylish Terrariums",
+    image:
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80",
     description: "Explore how TerraLiving redefines traditional herbariums...",
-    content: "Here's the detailed content for post 2... you can add anything you want.",
+    content:
+      "Here's the detailed content for post 2... you can add anything you want.",
   },
 ];
 
@@ -61,7 +66,10 @@ export default function EditPost() {
   // Handle file upload
   const handleFile = (file) => {
     if (file && !file.type.startsWith("image/")) {
-      setErrors({ ...errors, image: "Please upload an image file (PNG, JPG, GIF)." });
+      setErrors({
+        ...errors,
+        image: "Please upload an image file (PNG, JPG, GIF).",
+      });
       return;
     }
     setImageFile(file);
@@ -108,7 +116,8 @@ export default function EditPost() {
     }
 
     if (!content.trim() || content.length < 20) {
-      newErrors.content = "Content is required and must be at least 20 characters";
+      newErrors.content =
+        "Content is required and must be at least 20 characters";
     }
 
     if (description.length > 200) {
@@ -138,9 +147,7 @@ export default function EditPost() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-      >
-        <Header />
-      </motion.div>
+      ></motion.div>
 
       <main className="flex-grow max-w-5xl mx-auto px-8 sm:px-12 py-12 bg-white rounded-xl shadow-lg mt-10 mb-20 w-full">
         <motion.h1
@@ -297,7 +304,9 @@ export default function EditPost() {
               className={`w-full rounded-lg border border-gray-300 px-5 py-4 text-gray-900 placeholder-gray-400 shadow-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 transition resize-none ${
                 errors.description ? "border-red-500" : ""
               }`}
-              aria-describedby={errors.description ? "description-error" : undefined}
+              aria-describedby={
+                errors.description ? "description-error" : undefined
+              }
             />
             <AnimatePresence>
               {errors.description && (
@@ -381,8 +390,6 @@ export default function EditPost() {
           </motion.div>
         </form>
       </main>
-
-      <Footer />
     </div>
   );
 }

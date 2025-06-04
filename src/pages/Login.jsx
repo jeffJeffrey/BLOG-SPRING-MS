@@ -1,49 +1,54 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: "",
+    login: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
   const validateForm = () => {
     const newErrors = {};
 
-    // Email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
+    // login
+    if (!formData.login) {
+      newErrors.login = "username is required";
+    } 
+  
 
     // Password
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError(null);
     if (validateForm()) {
-      console.log("Form Data:", formData);
-      // Simulate API call or redirect
+      try {
+        await login(formData.login, formData.password);
+        navigate("/profile");
+      } catch (error) {
+        setApiError(error.response?.data?.message || "Login failed. Please check your credentials.");
+      }
     }
   };
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" });
     }
@@ -67,40 +72,40 @@ export default function Login() {
         </motion.h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email */}
+          {/* login */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Email
+              username
             </label>
             <div className="relative">
               <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-green-600" />
               <input
-                type="email"
-                placeholder="Your email"
+                type="text"
+                placeholder="Your username"
                 className={`w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition ${
-                  errors.email ? "border-red-500" : ""
+                  errors.login ? "border-red-500" : ""
                 }`}
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
+                value={formData.login}
+                onChange={(e) => handleChange("login", e.target.value)}
                 required
-                aria-describedby={errors.email ? "email-error" : undefined}
+                aria-describedby={errors.login ? "login-error" : undefined}
               />
             </div>
             <AnimatePresence>
-              {errors.email && (
+              {errors.login && (
                 <motion.p
-                  id="email-error"
+                  id="login-error"
                   className="text-red-600 text-sm mt-1"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {errors.email}
+                  {errors.login}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -152,6 +157,21 @@ export default function Login() {
               )}
             </AnimatePresence>
           </motion.div>
+
+          {/* API Error */}
+          <AnimatePresence>
+            {apiError && (
+              <motion.p
+                className="text-red-600 text-sm mt-1 text-center"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {apiError}
+              </motion.p>
+            )}
+          </AnimatePresence>
 
           {/* Forgot Password */}
           <motion.div

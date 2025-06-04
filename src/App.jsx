@@ -17,7 +17,7 @@ import VerifyEmailPrompt from "./pages/VerifyEmailPrompt";
 
 function AppLayout() {
   const location = useLocation();
-  const hideLayout = ["/login", "/register"].includes(location.pathname);
+  const hideLayout = ["/login", "/register", "/verify-email", "/verify-email-message"].includes(location.pathname);
 
   return (
     <>

@@ -13,33 +13,22 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = Cookies.get("token");
-    if (token) {
-      axios
-        .get("/USER-SERVICE/api/v1/profile", {
-          baseURL: API_URL,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((res) => {
-          setUser(res.data);
-          setLoading(false);
-        })
-        .catch(() => {
-          logout();
-          setLoading(false);
-        });
-    } else {
+    if(token){
+      setUser(JSON.parse(Cookies.get("user")));
+      setLoading(false);
+    }else{
+      setUser(null);
       setLoading(false);
     }
+      
   }, []);
 
   
 
-  const login = async (email, password) => {
+  const login = async (login, password) => {
     const res = await axios.post(
       "/USER-SERVICE/login",
-      { email, password },
+      { login, password },
       {
         baseURL: API_URL,
         headers: {
@@ -48,16 +37,17 @@ export const AuthProvider = ({ children }) => {
         },
       }
     );
-    const token = res.data.token;
-    Cookies.set("token", token);
-
-    const userRes = await axios.get("/USER-SERVICE/api/v1/profile", {
-      baseURL: API_URL,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const token = res.data.accessToken;
+    Cookies.set("token", token, {
+      expires: 3, // Expires in 7 days
     });
-    setUser(userRes.data);
+
+    Cookies.set("user", JSON.stringify(res.data.user), {
+      expires: 3, // Expires in 7 days
+    });
+
+
+    setUser(res.data.user);
   };
 
   const register = async (data) => {
@@ -68,7 +58,6 @@ export const AuthProvider = ({ children }) => {
         Accept: "application/json",
       },
     });
-    await login(data.email, data.password);
   };
 
   const logout = () => {

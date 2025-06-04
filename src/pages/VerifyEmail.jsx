@@ -1,16 +1,20 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import api from "../utils/axios"
+import api from "../utils/axios";
+
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("verifying"); // verifying, success, error
   const [errorMessage, setErrorMessage] = useState("");
+  const hasActivated = useRef(false); // Track if activation has been attempted
 
   useEffect(() => {
+    if (hasActivated.current) return; // Prevent multiple executions
+
     const hash = searchParams.get("hash");
     if (!hash) {
       setStatus("error");
@@ -19,20 +23,21 @@ export default function VerifyEmail() {
     }
 
     const activateAccount = async () => {
+      hasActivated.current = true; // Mark as attempted
       try {
         await api.post("/USER-SERVICE/api/v1/activate", { activationHash: hash });
         setStatus("success");
         toast.success("Account activated successfully!", {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 2000,
         });
-        setTimeout(() => navigate("/login"), 3000);
+        setTimeout(() => navigate("/login"), 2000); // Navigate after 2 seconds
       } catch (error) {
         setStatus("error");
         setErrorMessage(error.response?.data?.message || "Activation failed. The link may have expired or is invalid.");
         toast.error("Account activation failed!", {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 2000,
         });
       }
     };
@@ -69,7 +74,7 @@ export default function VerifyEmail() {
               Account Activated!
             </h1>
             <p className="text-gray-600">
-              Your account has been successfully activated. You will be redirected to the login page shortly.
+              Your account has been successfully activated. You will be redirected to the login page in a moment.
             </p>
           </motion.div>
         )}

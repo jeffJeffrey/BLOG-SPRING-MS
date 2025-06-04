@@ -1,21 +1,35 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMenu, FiX, FiSearch, FiUser } from "react-icons/fi";
+import { FiMenu, FiX, FiSearch, FiLogOut } from "react-icons/fi";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Header() {
+  const { user, logout, loading } = useAuth();
+  const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menuLinks = [
     { to: "/", label: "Home" },
-    { to: "/create", label: "Create Post" },
+    ...(user && !loading ? [{ to: "/create", label: "Create Post" }] : []),
     { to: "/about", label: "About Us" },
     { to: "/team", label: "Team" },
     { to: "#", label: "Official Store" },
   ];
+
+  const handleLogout = () => {
+    logout();
+    setMobileMenuOpen(false);
+    navigate("/");
+  };
+
+  // Get avatar initials (first letter of username or fallback)
+  const getAvatarInitials = () => {
+    if (!user || !user.username) return "";
+    return user.username[0].toUpperCase();
+  };
 
   return (
     <>
@@ -32,7 +46,7 @@ export default function Header() {
           </Link>
 
           {/* Menu Desktop */}
-          <nav className="hidden md:flex space-x-8 text-sm font-semibold text-gray-700">
+          <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-gray-700">
             {menuLinks.map((link) => (
               <Link key={link.label} to={link.to} className="hover:text-green-600 transition">
                 {link.label}
@@ -63,29 +77,34 @@ export default function Header() {
               />
             )}
 
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="text-white bg-green-600 w-8 h-8 rounded-full flex items-center justify-center focus:outline-none"
-              aria-label="User menu"
-            >
-              <FiUser />
-            </button>
-
-            <AnimatePresence>
-              {showUserMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 top-full mt-2 w-40 bg-white border border-gray-300 rounded-md shadow-lg z-20"
-                  onMouseLeave={() => setShowUserMenu(false)}
+            {!loading && user ? (
+              <>
+                <Link
+                  to="/profile"
+                  className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold hover:bg-green-700 transition"
+                  aria-label="User profile"
                 >
-                  <Link to="/profile" className="block px-4 py-2 hover:bg-green-100">Profile</Link>
-                  <Link to="/login" className="block px-4 py-2 hover:bg-green-100">Login</Link>
-                  <Link to="/register" className="block px-4 py-2 hover:bg-green-100">Register</Link>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {getAvatarInitials()}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 text-green-600 hover:text-green-700 font-semibold"
+                  aria-label="Logout"
+                >
+                  <FiLogOut />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              !loading && (
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                >
+                  Login
+                </Link>
+              )
+            )}
 
             {/* Menu burger mobile */}
             <div className="md:hidden">
@@ -119,6 +138,42 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            {!loading && user ? (
+              <>
+                <Link
+                  to="/profile"
+                  className="block text-gray-700 text-base font-semibold hover:text-green-600"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Profile ({user.username})
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left text-gray-700 text-base font-semibold hover:text-green-600"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              !loading && (
+                <>
+                  <Link
+                    to="/login"
+                    className="block text-gray-700 text-base font-semibold hover:text-green-600"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block text-gray-700 text-base font-semibold hover:text-green-600"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    register
+                  </Link>
+                </>
+              )
+            )}
           </motion.div>
         )}
       </AnimatePresence>

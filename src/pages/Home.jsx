@@ -6,6 +6,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaTag,
+  FaSpinner
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import api from "../utils/axios";
@@ -98,7 +99,7 @@ export default function Home() {
   if (isLoadingPosts || isLoadingCategories) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 text-lg">Loading...</p>
+        <FaSpinner className="animate-spin h-10 w-10 text-green-600" />
       </div>
     );
   }

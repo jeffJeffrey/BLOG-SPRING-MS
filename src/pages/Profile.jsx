@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBook, FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaBook, FaEye, FaEdit, FaTrash, FaSpinner } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-toastify";
 import api from "../utils/axios";
@@ -64,7 +64,7 @@ export default function Profile() {
   if (authLoading || isLoadingPosts) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 text-lg">Loading...</p>
+        <FaSpinner className="animate-spin text-green-600 text-4xl" />
       </div>
     );
   }

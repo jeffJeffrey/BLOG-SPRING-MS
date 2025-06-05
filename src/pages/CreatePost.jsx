@@ -123,7 +123,8 @@ export default function CreatePost() {
   if (authLoading || isLoadingCategories) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 text-lg">Loading...</p>
+        <FaSpinner className="animate-spin text-green-600 text-4xl" />
+
       </div>
     );
   }

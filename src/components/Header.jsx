@@ -25,7 +25,6 @@ export default function Header() {
     navigate("/");
   };
 
-  // Get avatar initials (first letter of username or fallback)
   const getAvatarInitials = () => {
     if (!user || !user.username) return "";
     return user.username[0].toUpperCase();
@@ -37,7 +36,7 @@ export default function Header() {
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 shadow-md"
+        className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-md"
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
@@ -126,7 +125,7 @@ export default function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-white mt-[72px] shadow-md border-b border-gray-200 md:hidden px-6 py-4 space-y-4 z-40"
+            className="fixed top-16 left-0 right-0 bg-white shadow-md border-b border-gray-200 md:hidden px-6 py-4 space-y-4 z-30"
           >
             {menuLinks.map((link) => (
               <Link
@@ -178,8 +177,10 @@ export default function Header() {
         )}
       </AnimatePresence>
 
-      {/* Spacer to push content below fixed navbar */}
-      <div className="h-[72px]" />
+      {/* Contenu principal - ajoutez cette div autour du contenu de votre page */}
+      <main className="pt-16">
+        {/* Le reste du contenu de votre page ira ici */}
+      </main>
     </>
   );
 }

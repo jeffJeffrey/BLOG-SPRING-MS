@@ -74,7 +74,7 @@ export default function ShowPost() {
         position: "top-right",
         autoClose: 2000,
       });
-      // window.location.reload();
+      window.location.reload();
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Failed to post comment.";
       toast.error(errorMessage, {

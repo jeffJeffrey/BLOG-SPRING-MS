@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -20,6 +20,7 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -68,6 +69,7 @@ export default function SignUp() {
     setApiError(null);
     if (validateForm()) {
       try {
+        setLoading(true);
         await register({
           username: formData.username,
           email: formData.email,
@@ -80,6 +82,7 @@ export default function SignUp() {
         setApiError(error.response?.data?.message || "Registration failed. Please try again.");
       }
     }
+    setLoading(false);
   };
 
   const handleChange = (field, value) => {
@@ -382,7 +385,14 @@ export default function SignUp() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Sign Up
+           {loading ? (
+              <span className="flex items-center justify-center">
+                <FaSpinner className="animate-spin mr-2" />
+                Register...
+              </span>
+            ) : (
+              "Register"
+            )}
           </motion.button>
         </form>
 

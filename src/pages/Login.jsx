@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaSpinner} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -15,6 +15,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -39,12 +40,14 @@ export default function Login() {
     setApiError(null);
     if (validateForm()) {
       try {
+        setLoading(true);
         await login(formData.login, formData.password);
         navigate("/profile");
       } catch (error) {
         setApiError(error.response?.data?.message || "Login failed. Please check your credentials.");
       }
     }
+    setLoading
   };
 
   const handleChange = (field, value) => {
@@ -198,7 +201,14 @@ export default function Login() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Log In
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <FaSpinner className="animate-spin mr-2" />
+                Logging in...
+              </span>
+            ) : (
+              "Log In"
+            )}
           </motion.button>
         </form>
 
